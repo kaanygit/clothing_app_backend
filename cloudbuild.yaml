@@ -1,0 +1,32 @@
+steps:
+  # Step 1: Docker imajı oluşturma
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/clothing-change-flask/clothing-change-flask'
+      - '.'
+
+  # Step 2: Docker imajını Google Container Registry'ye push etme
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/clothing-change-flask/clothing-change-flask'
+
+  # Step 3: Cloud Run'a deploy etme
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    args:
+      - 'gcloud'
+      - 'run'
+      - 'deploy'
+      - 'clothing-change-flask'
+      - '--image'
+      - 'gcr.io/clothing-change-flask/clothing-change-flask'
+      - '--platform'
+      - 'managed'
+      - '--region'
+      - 'us-central1'
+      - '--allow-unauthenticated'
+
+# Optionally define the timeout (default 10 minutes)
+timeout: 1200s
