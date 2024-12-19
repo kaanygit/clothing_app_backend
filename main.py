@@ -3,6 +3,7 @@ import os
 import tempfile
 import time
 from gradio_client import Client, handle_file
+from io import BytesIO
 
 app = Flask(__name__)
 client = Client("levihsu/OOTDiffusion")
@@ -30,17 +31,15 @@ def process():
             temp_filename = os.path.join(app.config['TEMP_DIR'], 'result_image_' + str(int(time.time())) + '.jpg')
             os.rename(image_path, temp_filename)
 
-            image_url = f"http://localhost:8080/images/{os.path.basename(temp_filename)}"
+            # Open the image and return it directly as a response
+            with open(temp_filename, 'rb') as img_file:
+                img_data = img_file.read()
             
-            return jsonify({'image_url': image_url})
+            return send_file(BytesIO(img_data), mimetype='image/jpeg', as_attachment=False, download_name='result_image.jpg')
         else:
             return jsonify({'error': 'Image processing failed'}), 500
     else:
         return jsonify({'error': 'Missing image URLs'}), 400
-
-@app.route('/images/<filename>')
-def get_image(filename):
-    return send_file(os.path.join(app.config['TEMP_DIR'], filename), mimetype='image/jpeg')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
